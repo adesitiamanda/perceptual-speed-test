@@ -1,19 +1,75 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Latihan Perceptual Speed Test - Nomor Rumah</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; background: #f2f2f2; }
-    h1 { text-align: center; }
-    .question { background: #fff; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .options { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-    .option-button { padding: 10px 10px 10px 35px; background-color: #e0e0e0; border: none; border-radius: 5px; cursor: pointer; text-align: left; font-size: 16px; position: relative; }
-    .option-button.selected { background-color: #4CAF50; color: white; }
-    .option-button:hover { background-color: #ccc; }
-    .order-number { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background-color: #fff; color: #333; font-weight: bold; padding: 2px 6px; border-radius: 50%; border: 1px solid #999; }
-    #timer { font-size: 18px; text-align: center; margin-bottom: 15px; font-weight: bold; }
-    #result { margin-top: 20px; font-weight: bold; font-size: 18px; text-align: center; white-space: pre-line; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f2f2f2;
+    }
+    h1 {
+      text-align: center;
+    }
+    .question {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .option-button {
+      padding: 10px 10px 10px 35px;
+      background-color: #e0e0e0;  /* awal abu-abu */
+      border: 2px solid transparent;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: left;
+      font-size: 16px;
+      position: relative;
+      color: #333;
+      transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+    }
+    .option-button:hover {
+      background-color: #ccc;
+    }
+    .option-button.selected {
+      background-color: #f9f5fe;   /* saat dipilih, warna dalam */
+      border-color: #531dca;       /* border ungu */
+      color: #531dca;              /* teks juga ungu */
+    }
+    .order-number {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: #fff;
+      color: #333;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 50%;
+      border: 1px solid #999;
+    }
+    #timer {
+      font-size: 18px;
+      text-align: center;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+    #result {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 18px;
+      text-align: center;
+      white-space: pre-line;
+    }
   </style>
 </head>
 <body>
@@ -29,15 +85,16 @@
     function generateHouseNumberOptions() {
       const options = new Set();
       while (options.size < 5) {
-        const num = Math.floor(Math.random() * 100).toString().padStart(2, '0');
-        const letter = String.fromCharCode(65 + Math.floor(Math.random() * 26));
-        options.add(`${num}${letter}`);
+        const num = Math.floor(Math.random() * 100 + 1).toString().padStart(2, '0');
+        const letter1 = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+        const letter2 = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+        options.add(`${num}${letter1}${letter2}`);
       }
       return Array.from(options).sort((a, b) => {
         const numA = parseInt(a);
         const numB = parseInt(b);
-        const charA = a.slice(-1);
-        const charB = b.slice(-1);
+        const charA = a.slice(-2);
+        const charB = b.slice(-2);
         return numA - numB || charA.localeCompare(charB);
       });
     }
