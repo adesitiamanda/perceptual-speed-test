@@ -31,6 +31,11 @@
       margin-bottom: 10px;
       text-align: center;
     }
+    .question-number {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
     .options {
       display: flex;
       justify-content: center;
@@ -41,6 +46,15 @@
       border-radius: 5px;
       padding: 10px 20px;
       cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .option.correct {
+      background-color: #c8e6c9; /* hijau muda */
+      border-color: #4caf50;
+    }
+    .option.incorrect {
+      background-color: #ffcdd2; /* merah muda */
+      border-color: #f44336;
     }
     .summary {
       display: none;
@@ -63,17 +77,38 @@
   </div>
 
   <script>
-    const totalQuestions = 77;
-    let current = 0;
     let score = 0;
-    let unanswered = totalQuestions;
+    let answered = 0;
     const data = [];
+    const questionLimit = 9999;
 
-    function generatePairs() {
-      for (let i = 0; i < totalQuestions; i++) {
+    function randomChar() {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^£&*_+=©;'
+      return chars[Math.floor(Math.random() * chars.length)];
+    }
+
+    function randomString(length = 8) {
+      let str = '';
+      for (let i = 0; i < length; i++) {
+        str += randomChar();
+      }
+      return str;
+    }
+
+    function mutateString(str) {
+      const pos = Math.floor(Math.random() * str.length);
+      let newChar;
+      do {
+        newChar = randomChar();
+      } while (newChar === str[pos]);
+      return str.substring(0, pos) + newChar + str.substring(pos + 1);
+    }
+
+    function generatePairs(limit) {
+      for (let i = 0; i < limit; i++) {
         const isSame = Math.random() < 0.5;
-        const base = Math.random().toString(36).substring(2, 10).toUpperCase();
-        let pair = isSame ? base : base.substring(0, base.length - 1) + String.fromCharCode(base.charCodeAt(base.length - 1) + 1);
+        const base = randomString(8);
+        const pair = isSame ? base : mutateString(base);
         data.push({ pair1: base, pair2: pair, isSame });
       }
     }
@@ -84,6 +119,7 @@
         const div = document.createElement('div');
         div.className = 'question' + (i === 0 ? ' active' : '');
         div.innerHTML = `
+          <div class="question-number">Soal ${i + 1}</div>
           <div class="pair">${q.pair1} &nbsp;&nbsp;&nbsp; ${q.pair2}</div>
           <div class="options">
             <div class="option" onclick="checkAnswer(${i}, true, this)">✓</div>
@@ -98,21 +134,34 @@
       const q = data[index];
       const parent = element.closest('.question');
       if (!parent.classList.contains('answered')) {
-        if (q.isSame === answer) score++;
-        unanswered--;
+        const options = parent.querySelectorAll('.option');
+        if (q.isSame === answer) {
+          element.classList.add('correct');
+          score++;
+        } else {
+          element.classList.add('incorrect');
+        }
+        answered++;
         parent.classList.add('answered');
+        setTimeout(() => {
+          parent.classList.remove('active');
+          if (index + 1 < data.length) {
+            document.getElementsByClassName('question')[index + 1].classList.add('active');
+          }
+        }, 300);
       }
-      parent.classList.remove('active');
-      if (index + 1 < totalQuestions) {
-        document.getElementsByClassName('question')[index + 1].classList.add('active');
-      } else {
-        document.getElementById('summary').innerHTML = `
-          <p>Jumlah Benar: ${score}</p>
-          <p>Jumlah Salah: ${totalQuestions - unanswered - score}</p>
-          <p>Tidak Dijawab: ${unanswered}</p>
-        `;
-        document.getElementById('summary').style.display = 'block';
-      }
+    }
+
+    function showSummary(message = '') {
+      document.querySelectorAll('.question').forEach(q => q.classList.remove('active'));
+      const avgTime = (720 / (answered || 1)).toFixed(2);
+      document.getElementById('summary').innerHTML = `
+        <p>${message}</p>
+        <p>Jumlah Benar: ${score}</p>
+        <p>Jumlah Salah: ${answered - score}</p>
+        <p>Rata-rata waktu per soal: ${avgTime} detik</p>
+      `;
+      document.getElementById('summary').style.display = 'block';
     }
 
     function startTimer(duration, display) {
@@ -125,19 +174,12 @@
         display.textContent = minutes + ":" + seconds;
         if (--timer < 0) {
           clearInterval(interval);
-          document.querySelectorAll('.question').forEach(q => q.classList.remove('active'));
-          document.getElementById('summary').innerHTML = `
-            <p>Waktu Habis</p>
-            <p>Jumlah Benar: ${score}</p>
-            <p>Jumlah Salah: ${totalQuestions - unanswered - score}</p>
-            <p>Tidak Dijawab: ${unanswered}</p>
-          `;
-          document.getElementById('summary').style.display = 'block';
+          showSummary('Waktu Habis');
         }
       }, 1000);
     }
 
-    generatePairs();
+    generatePairs(questionLimit);
     renderQuestions();
     startTimer(720, document.getElementById('timer'));
   </script>
