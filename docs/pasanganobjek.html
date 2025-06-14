@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Latihan Perceptual Speed</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    .question {
+      display: none;
+      margin-bottom: 20px;
+    }
+    .question.active {
+      display: block;
+    }
+    .pair {
+      font-size: 24px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    .options {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .option {
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      padding: 10px 20px;
+      cursor: pointer;
+    }
+    .summary {
+      display: none;
+      font-size: 18px;
+      text-align: center;
+    }
+    .timer {
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: bold;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="timer" id="timer">12:00</div>
+    <div id="questions"></div>
+    <div class="summary" id="summary"></div>
+  </div>
+
+  <script>
+    const totalQuestions = 77;
+    let current = 0;
+    let score = 0;
+    let unanswered = totalQuestions;
+    const data = [];
+
+    function generatePairs() {
+      for (let i = 0; i < totalQuestions; i++) {
+        const isSame = Math.random() < 0.5;
+        const base = Math.random().toString(36).substring(2, 10).toUpperCase();
+        let pair = isSame ? base : base.substring(0, base.length - 1) + String.fromCharCode(base.charCodeAt(base.length - 1) + 1);
+        data.push({ pair1: base, pair2: pair, isSame });
+      }
+    }
+
+    function renderQuestions() {
+      const container = document.getElementById('questions');
+      data.forEach((q, i) => {
+        const div = document.createElement('div');
+        div.className = 'question' + (i === 0 ? ' active' : '');
+        div.innerHTML = `
+          <div class="pair">${q.pair1} &nbsp;&nbsp;&nbsp; ${q.pair2}</div>
+          <div class="options">
+            <div class="option" onclick="checkAnswer(${i}, true, this)">✓</div>
+            <div class="option" onclick="checkAnswer(${i}, false, this)">✗</div>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function checkAnswer(index, answer, element) {
+      const q = data[index];
+      const parent = element.closest('.question');
+      if (!parent.classList.contains('answered')) {
+        if (q.isSame === answer) score++;
+        unanswered--;
+        parent.classList.add('answered');
+      }
+      parent.classList.remove('active');
+      if (index + 1 < totalQuestions) {
+        document.getElementsByClassName('question')[index + 1].classList.add('active');
+      } else {
+        document.getElementById('summary').innerHTML = `
+          <p>Jumlah Benar: ${score}</p>
+          <p>Jumlah Salah: ${totalQuestions - unanswered - score}</p>
+          <p>Tidak Dijawab: ${unanswered}</p>
+        `;
+        document.getElementById('summary').style.display = 'block';
+      }
+    }
+
+    function startTimer(duration, display) {
+      let timer = duration, minutes, seconds;
+      const interval = setInterval(function () {
+        minutes = parseInt(timer / 60, 10);
+        seconds = parseInt(timer % 60, 10);
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+        display.textContent = minutes + ":" + seconds;
+        if (--timer < 0) {
+          clearInterval(interval);
+          document.querySelectorAll('.question').forEach(q => q.classList.remove('active'));
+          document.getElementById('summary').innerHTML = `
+            <p>Waktu Habis</p>
+            <p>Jumlah Benar: ${score}</p>
+            <p>Jumlah Salah: ${totalQuestions - unanswered - score}</p>
+            <p>Tidak Dijawab: ${unanswered}</p>
+          `;
+          document.getElementById('summary').style.display = 'block';
+        }
+      }, 1000);
+    }
+
+    generatePairs();
+    renderQuestions();
+    startTimer(720, document.getElementById('timer'));
+  </script>
+</body>
+</html>
